@@ -4,9 +4,13 @@ Description: >
   CodePipeline Dashboard Elastic Beanstalk Deployment and CICD Pipeline.  It will deploy anything that you do not 
   supply.  If a custom CNAME prefix is specified, the dashboard URL will be provided as an output of the template.  
   Elastic Beanstalk will always create the default Security Group, which allows open access on Port 80, that must be 
-  manually locked down after stack creation if you want to limit access to the dashboard.
+  manually locked down after stack creation if you want to limit access to the dashboard.  Deploys to default VPC.
 
 Parameters:
+  GitHubRepoOwner:
+    Type: String
+    Default: m8786
+    Description: Repository owner to pull the project from.
   GitHubToken:
     Type: String
     NoEcho: true
@@ -29,7 +33,7 @@ Parameters:
     Description: Require Human Approval for Deployments from this pipeline? 
   Branch:
     Type: String
-    Default: master
+    Default: main
     Description: Override the branch of the CodePipelnie repo to pull from GitHub for the CICD pipeline
   S3Bucket:
     Type: String
@@ -85,6 +89,7 @@ Metadata:
     - Label:
         default: "Overrides (Optional)"
       Parameters:
+      - GitHubRepoOwner
       - ApprovalRequired
       - Branch
       - CodeBuildImage
@@ -92,6 +97,8 @@ Metadata:
       - InstanceType
       - CNamePrefix
     ParameterLabels:
+      GitHubRepoOwner:
+        default: GitHub Repository Owner
       GitHubToken:
         default: GitHub Access Token
       SecretResolveString:
@@ -404,11 +411,11 @@ Resources:
               Category: Source
               Owner: ThirdParty
               Version: '1'
-              Provider: GitHub #Even though CodeStar is preferred, this requires less interaction to set up
+              Provider: GitHub #Even though CodeStar is preferred, this (GitHub v1) requires less interaction to set up
             OutputArtifacts:
             - Name: SourceCode
             Configuration:
-              Owner: uplift-inc #Update here to use a different fork, didn't parameterize because not needed for our use
+              Owner: !Ref GitHubRepoOwner
               Repo: 'aws-codepipelines-dashboard'
               Branch: !Ref Branch
               OAuthToken: !If
